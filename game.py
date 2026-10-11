@@ -15,10 +15,16 @@ class Game:
         self.player = Player(self.level.start_pos, cfg.PLAYER_SIZE, cfg.PLAYER_COLOR)
 
     def next_level(self, path: str) -> None:
+        """
+        Функция загрузки нового уровня из path
+        """
         self.level.clear_level()
         self.level.load_level(path)
 
     def update(self, key_pressed, key_just_pressed) -> None:
+        """
+        Обновление всех данных игры
+        """
         self.player.handle_input(key_pressed, key_just_pressed)
         self.player.update(self.level.level_bounds, self.level.platforms)
         for enemy in self.level.enemies:
