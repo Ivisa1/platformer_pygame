@@ -30,7 +30,7 @@ class Game:
         for enemy in self.level.enemies:
             enemy.update(self.level.level_bounds, self.level.platforms)
         for enemy in self.level.enemies:
-            if enemy.rect.colliderect(self.player.collide_rect):
+            if enemy.rect.colliderect(self.player.rect):
                 self.player.set_player_to_start_pos()
                 self.player.set_speed_to_zero()
                 self.player.on_ground = False
@@ -49,7 +49,7 @@ class Game:
             self.player.start_pos = self.level.start_pos
             self.player.set_player_to_start_pos()
             self.player.set_speed_to_zero()
-        self.camera.update(self.player.rect, self.level.level_bounds, (cfg.WIDTH, cfg.HEIGHT))
+        self.camera.update(self.player.draw_rect, self.level.level_bounds, (cfg.WIDTH, cfg.HEIGHT))
 
     def draw(self, surface: pygame.Surface) -> None:
         self.level.draw(surface, self.camera)

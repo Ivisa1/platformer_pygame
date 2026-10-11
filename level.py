@@ -153,7 +153,7 @@ class Level:
         """
         collected = len(pygame.sprite.spritecollide(player, self.objects, dokill=True))
 
-        if self.finish and self.finish.rect.colliderect(player.rect):
+        if self.finish and self.finish.rect.colliderect(player.draw_rect):
             self.complete = True
         return collected
 
