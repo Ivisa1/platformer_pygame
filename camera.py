@@ -30,5 +30,6 @@ class Camera:
         """
         Отрисовка группы спрайтов с применением смещения камеры
         """
+        print(self.offset)
         for sprite in sprite_group.sprites():
             surface.blit(sprite.image, self.apply(sprite.rect).topleft)

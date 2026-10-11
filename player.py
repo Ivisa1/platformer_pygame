@@ -20,7 +20,8 @@ class Player(pygame.sprite.Sprite):
             start_pos: tuple[int, int],
             size: tuple[int, int],
             collide_size: tuple[int, int],
-            color: tuple[int, int, int]
+            color: tuple[int, int, int],
+            animation_frame_time: int
     ) -> None:
         super().__init__()
         self.start_pos: tuple[int, int] = start_pos
@@ -37,6 +38,8 @@ class Player(pygame.sprite.Sprite):
         self.last_animation: str = 'idle'
         self.current_animation: str = 'idle'
         self.current_animation_frame: int = 0
+        self.animation_frame_time: int = animation_frame_time
+        self.current_animation_frame_time: int = 0
 
     def load_animations(self, folder: str) -> dict[str, list[pygame.Surface]]:
         """
@@ -94,17 +97,20 @@ class Player(pygame.sprite.Sprite):
         if keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]:
             self.current_speed.x += cfg.PLAYER_VELOCITY_X
 
-    def _update_current_and_last_animations(self):
+    def _update_current_and_last_animations(self, delta_time: int):
         """
         Обновляет параметр анимации, проигрываемой на предыдущем тике.
         Обновляет номер текущего кадра анимации
         """
         if self.current_animation == self.last_animation:
-            self.current_animation_frame = (
-                self.current_animation_frame + 1
-                if self.current_animation_frame + 1 < len(self.animations[self.current_animation]) else
-                0
-            )
+            self.current_animation_frame_time += delta_time
+            if self.current_animation_frame_time >= self.animation_frame_time:
+                self.current_animation_frame_time = self.current_animation_frame_time % self.animation_frame_time
+                self.current_animation_frame = (
+                    self.current_animation_frame + 1
+                    if self.current_animation_frame + 1 < len(self.animations[self.current_animation]) else
+                    0
+                )
         else:
             self.last_animation = self.current_animation
             self.current_animation_frame = 0
@@ -131,28 +137,28 @@ class Player(pygame.sprite.Sprite):
                 flip_y=False
             )
 
-    def update_animation(self):
+    def update_animation(self, delta_time):
         """
         Обновляет текущую анимацию
         """
         if self.on_ground == True:
             if self.current_speed.x:
                 self.current_animation = 'run'
-                self._update_current_and_last_animations()
+                self._update_current_and_last_animations(delta_time)
             elif not self.current_speed.x:
                 self.current_animation = 'idle'
-                self._update_current_and_last_animations()
+                self._update_current_and_last_animations(delta_time)
         else:
             if self.current_speed.y <= 0:
                 self.current_animation = 'jump'
-                self._update_current_and_last_animations()
+                self._update_current_and_last_animations(delta_time)
             if self.current_speed.y > 0:
                 self.current_animation = 'fall'
-                self._update_current_and_last_animations()
+                self._update_current_and_last_animations(delta_time)
         self.set_animation_image()
         self.set_last_direction()
 
-    def update(self, bounds: pygame.Rect, platforms: pygame.sprite.Group) -> None:
+    def update(self, bounds: pygame.Rect, platforms: pygame.sprite.Group, delta: float, delta_time: int) -> None:
         """
         Обработка физики персонажа
         """
@@ -198,7 +204,7 @@ class Player(pygame.sprite.Sprite):
                     self.draw_rect.midbottom = self.rect.midbottom
                 break
 
-        self.update_animation()
+        self.update_animation(delta_time)
 
         self.current_speed.x = 0
         self.rect.clamp_ip(bounds)

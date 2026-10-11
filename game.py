@@ -12,7 +12,13 @@ class Game:
         self.camera = Camera()
         self.level_index = 0
         self.level = Level(join("levels", f"level_{int(self.level_index)}.csv"))
-        self.player = Player(self.level.start_pos, cfg.PLAYER_SIZE, cfg.PLAYER_COLLIDE_RECT_SIZE, cfg.PLAYER_COLOR)
+        self.player = Player(
+            self.level.start_pos,
+            cfg.PLAYER_SIZE,
+            cfg.PLAYER_COLLIDE_RECT_SIZE,
+            cfg.PLAYER_COLOR,
+            cfg.ANIMATION_FRAME_TIME
+        )
 
     def next_level(self, path: str) -> None:
         """
@@ -21,12 +27,12 @@ class Game:
         self.level.clear_level()
         self.level.load_level(path)
 
-    def update(self, key_pressed, key_just_pressed) -> None:
+    def update(self, key_pressed, key_just_pressed, delta, delta_time) -> None:
         """
         Обновление всех данных игры
         """
         self.player.handle_input(key_pressed, key_just_pressed)
-        self.player.update(self.level.level_bounds, self.level.platforms)
+        self.player.update(self.level.level_bounds, self.level.platforms, delta, delta_time)
         for enemy in self.level.enemies:
             enemy.update(self.level.level_bounds, self.level.platforms)
         for enemy in self.level.enemies:

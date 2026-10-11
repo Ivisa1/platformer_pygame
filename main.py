@@ -22,6 +22,8 @@ ui_font = pygame.font.Font(size=44)
 clock = pygame.time.Clock()
 
 # Игровой цикл
+delta_time = 0
+delta = 0.0
 running = True
 while running:
     # Обработка событий
@@ -35,7 +37,7 @@ while running:
     keys_just_pressed = pygame.key.get_just_pressed()
 
     # Обновление игровых данных
-    game.update(keys_pressed, keys_just_pressed)
+    game.update(keys_pressed, keys_just_pressed, delta, delta_time)
 
     # Отрисовка игры
     window.fill(cfg.BG_COLOR)
@@ -47,7 +49,8 @@ while running:
     pygame.display.flip()
 
     # Контроль количества кадров
-    clock.tick(cfg.FPS)
+    delta_time = clock.tick(cfg.FPS) # время с последнего кадра
+    delta = delta_time / 1000 # параметр дельта для работы с физикой
 
 pygame.quit()
 sys.exit()
