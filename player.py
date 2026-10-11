@@ -17,11 +17,14 @@ class Player(pygame.sprite.Sprite):
             self,
             start_pos: tuple[int, int],
             size: tuple[int, int],
+            collide_size: tuple[int, int],
             color: tuple[int, int, int]
     ) -> None:
         super().__init__()
         self.start_pos: tuple[int, int] = start_pos
         self.rect: pygame.Rect | pygame.FRect = pygame.Rect(start_pos, size)
+        self.collide_rect: pygame.Rect | pygame.FRect = pygame.Rect(start_pos, collide_size)
+        self.collide_rect.midbottom = self.rect.midbottom
         self.color: pygame.Color = pygame.Color(color)
         self.image: pygame.Surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
         self.image.fill(self.color)
@@ -59,9 +62,10 @@ class Player(pygame.sprite.Sprite):
 
     def set_player_to_start_pos(self) -> None:
         """
-        Устанавливает rect пользователя в стартовую позицию
+        Устанавливает rect и collide_rect пользователя в стартовую позицию
         """
         self.rect = self.rect.move_to(topleft=self.start_pos)
+        self.collide_rect.midbottom = self.rect.midbottom
 
     def set_speed_to_zero(self) -> None:
         """
@@ -130,10 +134,7 @@ class Player(pygame.sprite.Sprite):
         self.set_animation_image()
         self.set_last_direction()
 
-
-
-
-    def update(self, bounds: pygame.Rect, platforms: list['Tile']) -> None:
+    def update(self, bounds: pygame.Rect, platforms: pygame.sprite.Group) -> None:
         """
         Обработка физики персонажа
         """
@@ -145,40 +146,45 @@ class Player(pygame.sprite.Sprite):
             self.current_speed.y = min(int(self.current_speed.y), int(cfg.MAX_FALL_SPEED))
         elif self.current_speed.y < 0:
             self.current_speed.y = max(int(self.current_speed.y), int(-cfg.MAX_FALL_SPEED))
-        self.rect.y += self.current_speed.y
+        self.collide_rect.y += self.current_speed.y
+        self.rect.midbottom = self.collide_rect.midbottom
         for platform in platforms:
-            if self.rect.colliderect(platform.rect):
+            if self.collide_rect.colliderect(platform.rect):
                 if self.current_speed.y > 0:
-                    self.rect.bottom = platform.rect.top
+                    self.collide_rect.bottom = platform.rect.top
                     self.on_ground = True
                     self.current_speed.y = 0
                 elif self.current_speed.y < 0:
-                    self.rect.top = platform.rect.bottom
+                    self.collide_rect.top = platform.rect.bottom
                     self.current_speed.y = 0
                 break
-        if self.rect.bottom >= bounds.bottom:
+        if self.collide_rect.bottom >= bounds.bottom:
             self.current_speed.y = 0
             self.on_ground = True
 
         ### ДВИЖЕНИЕ И ОБРАБОТКА СТОЛКНОВЕНИЙ ПО X ###
-        self.rect.x += int(self.current_speed.x)
+        self.collide_rect.x += int(self.current_speed.x)
+        self.rect.midbottom = self.collide_rect.midbottom
         self.last_direction_x = (
             1 if self.current_speed.x > 0 else
             -1 if self.current_speed.x < 0 else
             self.last_direction_x
         )
         for platform in platforms:
-            if self.rect.colliderect(platform.rect):
+            if self.collide_rect.colliderect(platform.rect):
                 if self.current_speed.x > 0:
-                    self.rect.right = platform.rect.left
+                    self.collide_rect.right = platform.rect.left
+                    self.rect.midbottom = self.collide_rect.midbottom
                 elif self.current_speed.x < 0:
-                    self.rect.left = platform.rect.right
+                    self.collide_rect.left = platform.rect.right
+                    self.rect.midbottom = self.collide_rect.midbottom
                 break
 
         self.update_animation()
 
         self.current_speed.x = 0
-        self.rect.clamp_ip(bounds)
+        self.collide_rect.clamp_ip(bounds)
+        self.rect.midbottom = self.collide_rect.midbottom
 
     def draw(self, surface: pygame.Surface, camera: 'Camera'):
         surface.blit(self.image, camera.apply(self.rect).topleft)

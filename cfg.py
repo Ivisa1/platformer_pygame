@@ -38,6 +38,7 @@ ENEMIES_PARAMS = {
 PLAYER_SIZE = (32, 32)
 PLAYER_VELOCITY_X = 5
 PLAYER_COLOR = (100, 100, 100)
+PLAYER_COLLIDE_RECT_SIZE = (22, 26) # этот прямоугольник будет использоваться для взаимодействия с окружением
 
 GRAVITY = 1
 JUMP_POWER = -15

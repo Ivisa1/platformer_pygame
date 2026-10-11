@@ -12,7 +12,7 @@ class Game:
         self.camera = Camera()
         self.level_index = 0
         self.level = Level(join("levels", f"level_{int(self.level_index)}.csv"))
-        self.player = Player(self.level.start_pos, cfg.PLAYER_SIZE, cfg.PLAYER_COLOR)
+        self.player = Player(self.level.start_pos, cfg.PLAYER_SIZE, cfg.PLAYER_COLLIDE_RECT_SIZE, cfg.PLAYER_COLOR)
 
     def next_level(self, path: str) -> None:
         """
@@ -30,7 +30,7 @@ class Game:
         for enemy in self.level.enemies:
             enemy.update(self.level.level_bounds, self.level.platforms)
         for enemy in self.level.enemies:
-            if enemy.rect.colliderect(self.player.rect):
+            if enemy.rect.colliderect(self.player.collide_rect):
                 self.player.set_player_to_start_pos()
                 self.player.set_speed_to_zero()
                 self.player.on_ground = False
