@@ -6,12 +6,12 @@ from game import Game
 
 pygame.init()
 
+window = pygame.display.set_mode((cfg.WIDTH, cfg.HEIGHT))
+pygame.display.set_caption("study_with_deepseek")
+
 game = Game()
 
 ui_font = pygame.font.Font(size=44)
-
-window = pygame.display.set_mode((cfg.WIDTH, cfg.HEIGHT))
-pygame.display.set_caption("study_with_deepseek")
 
 clock = pygame.time.Clock()
 

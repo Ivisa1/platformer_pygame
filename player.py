@@ -1,5 +1,9 @@
 import pygame
+from os import listdir
+from os.path import join
 from typing import TYPE_CHECKING
+
+from pygame.image import load_animation
 
 import cfg
 
@@ -9,7 +13,12 @@ if TYPE_CHECKING:
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, start_pos: tuple[int, int], size: tuple[int, int], color: tuple[int, int, int]) -> None:
+    def __init__(
+            self,
+            start_pos: tuple[int, int],
+            size: tuple[int, int],
+            color: tuple[int, int, int]
+    ) -> None:
         super().__init__()
         self.start_pos: tuple[int, int] = start_pos
         self.rect: pygame.Rect | pygame.FRect = pygame.Rect(start_pos, size)
@@ -17,7 +26,35 @@ class Player(pygame.sprite.Sprite):
         self.image: pygame.Surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
         self.image.fill(self.color)
         self.current_speed: pygame.math.Vector2 = pygame.math.Vector2(0, 0)
+        self.last_direction_x: int = 1
         self.on_ground: bool = False
+        self.animations: dict[str, list[pygame.Surface]] = self.load_animations(join("assets", "player"))
+        self.current_animation: str = 'idle'
+        self.current_frame: int = 0
+
+    def load_animations(self, folder: str) -> dict[str, list[pygame.Surface]]:
+        animations: dict[str, list[pygame.Surface]] = {}
+        for file in listdir(folder):
+            animation_name = file.split('.')[0]
+            animations[animation_name] = []
+            full_animation: pygame.Surface = pygame.image.load(join(folder, file)).convert_alpha()
+            rows_cols = list(
+                map(
+                    int, [full_animation.size[i] / cfg.PLAYER_SIZE[i] for i in range(len(full_animation.size)-1, -1, -1)]
+                )
+            )
+            for row in range(rows_cols[0]):
+                for col in range(rows_cols[1]):
+                    animations[animation_name].append(
+                        full_animation.subsurface(
+                            col*cfg.PLAYER_SIZE[0],
+                            row*cfg.PLAYER_SIZE[1],
+                            cfg.PLAYER_SIZE[0],
+                            cfg.PLAYER_SIZE[1]
+                        )
+                    )
+        print(animations)
+        return animations
 
     def set_player_to_start_pos(self) -> None:
         """
@@ -46,6 +83,18 @@ class Player(pygame.sprite.Sprite):
             self.current_speed.x -= cfg.PLAYER_VELOCITY_X
         if keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]:
             self.current_speed.x += cfg.PLAYER_VELOCITY_X
+
+    def update_animation(self):
+        if self.on_ground == True:
+            if self.current_speed.x:
+                pass
+            elif not self.current_speed.x:
+                if self.current_animation == 'idle':
+                    self.image = self.animations['idle'][self.current_frame]
+                    self.current_frame = (
+                        self.current_frame + 1
+                        if self.current_frame + 1 < len(self.animations['idle']) else 0
+                    )
 
     def update(self, bounds: pygame.Rect, platforms: list['Tile']) -> None:
         """
@@ -83,8 +132,10 @@ class Player(pygame.sprite.Sprite):
                 elif self.current_speed.x < 0:
                     self.rect.left = platform.rect.right
                 break
-        self.current_speed.x = 0
 
+        self.update_animation()
+
+        self.current_speed.x = 0
         self.rect.clamp_ip(bounds)
 
     def draw(self, surface: pygame.Surface, camera: 'Camera'):
