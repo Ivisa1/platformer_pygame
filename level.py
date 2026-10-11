@@ -1,16 +1,20 @@
 import pygame
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import cfg
-from camera import Camera
-from enemy import Enemy, Directions
-from  player import Player
+from enemy import Directions, Enemy
+
+if TYPE_CHECKING:
+    from camera import Camera
+    from player import Player
 
 
 class Form(Enum):
     """
     Перечисление возможных форм объектов
     """
+
     RECT = 'rect'
     CIRCLE = 'circle'
 
@@ -18,6 +22,7 @@ class Tile(pygame.sprite.Sprite):
     """
     Класс для платформ на уровне
     """
+
     def __init__(
             self,
             color: tuple[int, int, int],
@@ -34,6 +39,7 @@ class Object(pygame.sprite.Sprite):
     """
     Класс для игровых объектов на уровне
     """
+
     def __init__(
             self,
             form: Form,
@@ -55,6 +61,10 @@ class Object(pygame.sprite.Sprite):
 
 
 class Level:
+    """
+    Класс игрового уровня
+    """
+
     def __init__(self, path: str) -> None:
         self.platforms: pygame.sprite.Group = pygame.sprite.Group()
         self.objects: pygame.sprite.Group = pygame.sprite.Group()
@@ -157,7 +167,7 @@ class Level:
             self.complete = True
         return collected
 
-    def draw(self, surface: pygame.Surface, camera: Camera):
+    def draw(self, surface: pygame.Surface, camera: 'Camera'):
         """
         Отрисовка всех объектов уровня
         """

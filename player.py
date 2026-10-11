@@ -3,8 +3,6 @@ from os import listdir
 from os.path import join
 from typing import TYPE_CHECKING
 
-from pygame.image import load_animation
-
 import cfg
 
 if TYPE_CHECKING:
@@ -13,6 +11,10 @@ if TYPE_CHECKING:
 
 
 class Player(pygame.sprite.Sprite):
+    """
+    Класс игрового персонажа
+    """
+
     def __init__(
             self,
             start_pos: tuple[int, int],
@@ -37,6 +39,9 @@ class Player(pygame.sprite.Sprite):
         self.current_animation_frame: int = 0
 
     def load_animations(self, folder: str) -> dict[str, list[pygame.Surface]]:
+        """
+        Загружает все анимации в данные персонажа
+        """
         animations: dict[str, list[pygame.Surface]] = {}
         for file in listdir(folder):
             animation_name = file.split('.')[0]
@@ -90,6 +95,10 @@ class Player(pygame.sprite.Sprite):
             self.current_speed.x += cfg.PLAYER_VELOCITY_X
 
     def _update_current_and_last_animations(self):
+        """
+        Обновляет параметр анимации, проигрываемой на предыдущем тике.
+        Обновляет номер текущего кадра анимации
+        """
         if self.current_animation == self.last_animation:
             self.current_animation_frame = (
                 self.current_animation_frame + 1
@@ -101,12 +110,18 @@ class Player(pygame.sprite.Sprite):
             self.current_animation_frame = 0
 
     def set_last_direction(self):
+        """
+        Записывает последнее направление, в котором двигался персонаж
+        """
         if self.current_speed.x > 0:
             self.last_direction_x = 1
         elif self.current_speed.x < 0:
             self.last_direction_x = -1
 
     def set_animation_image(self):
+        """
+        Устанавливает поверхность, которая будет отображаться при рисовании героя
+        """
         if self.last_direction_x == 1:
             self.image = self.animations[self.current_animation][self.current_animation_frame]
         elif self.last_direction_x == -1:
@@ -117,6 +132,9 @@ class Player(pygame.sprite.Sprite):
             )
 
     def update_animation(self):
+        """
+        Обновляет текущую анимацию
+        """
         if self.on_ground == True:
             if self.current_speed.x:
                 self.current_animation = 'run'

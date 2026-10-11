@@ -8,11 +8,18 @@ if TYPE_CHECKING:
 
 
 class Directions(Enum):
+    """
+    Перечисление возможных направлений противника
+    """
     LEFT = -1
     RIGHT = 1
     STOP = 0
 
 class Enemy(pygame.sprite.Sprite):
+    """
+    Класс игрового противника
+    """
+
     def __init__(
             self,
             position: tuple[int, int],
@@ -52,4 +59,7 @@ class Enemy(pygame.sprite.Sprite):
 
 
     def draw(self, surface: pygame.Surface, camera: 'Camera'):
+        """
+        Метод отрисовки противника
+        """
         pygame.draw.rect(surface, self.color, camera.apply(self.rect))
