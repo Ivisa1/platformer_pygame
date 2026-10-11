@@ -29,8 +29,9 @@ class Player(pygame.sprite.Sprite):
         self.last_direction_x: int = 1
         self.on_ground: bool = False
         self.animations: dict[str, list[pygame.Surface]] = self.load_animations(join("assets", "player"))
+        self.last_animation: str = 'idle'
         self.current_animation: str = 'idle'
-        self.current_frame: int = 0
+        self.current_animation_frame: int = 0
 
     def load_animations(self, folder: str) -> dict[str, list[pygame.Surface]]:
         animations: dict[str, list[pygame.Surface]] = {}
@@ -84,17 +85,53 @@ class Player(pygame.sprite.Sprite):
         if keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]:
             self.current_speed.x += cfg.PLAYER_VELOCITY_X
 
+    def _update_current_and_last_animations(self):
+        if self.current_animation == self.last_animation:
+            self.current_animation_frame = (
+                self.current_animation_frame + 1
+                if self.current_animation_frame + 1 < len(self.animations[self.current_animation]) else
+                0
+            )
+        else:
+            self.last_animation = self.current_animation
+            self.current_animation_frame = 0
+
+    def set_last_direction(self):
+        if self.current_speed.x > 0:
+            self.last_direction_x = 1
+        elif self.current_speed.x < 0:
+            self.last_direction_x = -1
+
+    def set_animation_image(self):
+        if self.last_direction_x == 1:
+            self.image = self.animations[self.current_animation][self.current_animation_frame]
+        elif self.last_direction_x == -1:
+            self.image = pygame.transform.flip(
+                self.animations[self.current_animation][self.current_animation_frame],
+                flip_x=True,
+                flip_y=False
+            )
+
     def update_animation(self):
         if self.on_ground == True:
             if self.current_speed.x:
-                pass
+                self.current_animation = 'run'
+                self._update_current_and_last_animations()
             elif not self.current_speed.x:
-                if self.current_animation == 'idle':
-                    self.image = self.animations['idle'][self.current_frame]
-                    self.current_frame = (
-                        self.current_frame + 1
-                        if self.current_frame + 1 < len(self.animations['idle']) else 0
-                    )
+                self.current_animation = 'idle'
+                self._update_current_and_last_animations()
+        else:
+            if self.current_speed.y <= 0:
+                self.current_animation = 'jump'
+                self._update_current_and_last_animations()
+            if self.current_speed.y > 0:
+                self.current_animation = 'fall'
+                self._update_current_and_last_animations()
+        self.set_animation_image()
+        self.set_last_direction()
+
+
+
 
     def update(self, bounds: pygame.Rect, platforms: list['Tile']) -> None:
         """
@@ -125,6 +162,11 @@ class Player(pygame.sprite.Sprite):
 
         ### ДВИЖЕНИЕ И ОБРАБОТКА СТОЛКНОВЕНИЙ ПО X ###
         self.rect.x += int(self.current_speed.x)
+        self.last_direction_x = (
+            1 if self.current_speed.x > 0 else
+            -1 if self.current_speed.x < 0 else
+            self.last_direction_x
+        )
         for platform in platforms:
             if self.rect.colliderect(platform.rect):
                 if self.current_speed.x > 0:
